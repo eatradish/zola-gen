@@ -35,19 +35,19 @@ fn apply_templete(title: &str, new_item: &mut NewItem) -> Result<()> {
 fn write_to_file(title: &str, new_item: &mut NewItem, is_post: bool) -> Result<()> {
     let s = format!("+++\n{}+++\n", toml::to_string(new_item)?);
 
-    if is_post {
+    let (mut f, path) = if is_post {
         let path = Path::new(".").join("content").join(format!("{}.md", title));
-        let mut f = std::fs::File::create(&path)?;
-        f.write_all(s.as_bytes())?;
-        println!("File: {} is create!", path.display());
+
+        (std::fs::File::create(&path)?, path)
     } else {
-        let mut path = Path::new(".").join(title);
+        let mut path = Path::new(".").join("content").join(title);
         std::fs::create_dir_all(&path)?;
         path.push("_index.md");
-        let mut f = std::fs::File::create(&path)?;
-        f.write_all(s.as_bytes())?;
-        println!("File: {} is create!", path.display());
-    }
+
+        (std::fs::File::create(&path)?, path)
+    };
+    f.write_all(s.as_bytes())?;
+    println!("File: {} is create!", path.display());
 
     Ok(())
 }
@@ -74,5 +74,5 @@ fn test() {
         other: None,
     };
     apply_templete("qaq", &mut new_item).unwrap();
-    dbg!(toml::to_string(&new_item).unwrap());
+    assert!(toml::to_string(&new_item).is_ok());
 }

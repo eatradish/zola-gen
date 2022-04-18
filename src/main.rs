@@ -32,6 +32,19 @@ struct NewPageCommand {
     post_name: String,
 }
 
+macro_rules! execute_inner {
+    ($env:expr, $name:ident, $is_post: ident) => {
+        if let Some(p) = $env {
+            let mut f = std::fs::File::open(p).expect("Can not open ZOLA_TEMPLATE_POST env path!");
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf)
+                .expect("Can not open ZOLA_TEMPLATE_POST env path!");
+            execute(Some(&buf), &$name, $is_post).expect("Failed to create File!");
+        } else {
+            execute(None, &$name, $is_post).expect("Failed to create File!");
+        }
+    };
+}
 
 fn main() {
     let args = Args::parse();
@@ -43,24 +56,10 @@ fn main() {
     }
     match args.subcommand {
         ZolaGenCommand::NewPost(NewPostCommand { post_name }) => {
-            if let Some(p) = post_template {
-                let mut f = std::fs::File::open(p).expect("Can not open ZOLA_TEMPLATE_POST env path!");
-                let mut buf = Vec::new();
-                f.read_to_end(&mut buf).expect("Can not open ZOLA_TEMPLATE_POST env path!");
-                execute(Some(&buf), &post_name, true).expect("Failed to create File!");
-            } else {
-                execute(None, &post_name, true).expect("Failed to create File!");
-            }
+            execute_inner!(post_template, post_name, true);
         }
         ZolaGenCommand::NewPage(NewPageCommand { post_name }) => {
-            if let Some(p) = page_template {
-                let mut f = std::fs::File::open(p).expect("Can not open ZOLA_TEMPLATE_POST env path!");
-                let mut buf = Vec::new();
-                f.read_to_end(&mut buf).expect("Can not open ZOLA_TEMPLATE_POST env path!");
-                execute(Some(&buf), &post_name, false).expect("Failed to create File!");
-            }  else {
-                execute(None, &post_name, false).expect("Failed to create File!");
-            }
+            execute_inner!(page_template, post_name, false);
         }
     }
 }
