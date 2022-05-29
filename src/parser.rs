@@ -23,7 +23,7 @@ fn read_template(s: &[u8]) -> Result<NewItem> {
 fn apply_templete(title: &str, new_item: &mut NewItem) -> Result<()> {
     new_item.title = title.to_string();
     if new_item.date.is_some() {
-        let t = OffsetDateTime::now_utc();
+        let t = OffsetDateTime::now_local()?;
         let format = format_description::well_known::Rfc3339;
         let date = t.format(&format)?;
         new_item.date = Some(date);
